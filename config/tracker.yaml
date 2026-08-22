@@ -1,0 +1,50 @@
+pan_tilt_tracker:
+  ros__parameters:
+
+    camera_device: "/dev/video0"
+
+    camera_width: 1280
+    camera_height: 480
+    camera_fps: 30
+
+    model_path: "/app/pydev_demo/04_pose_sample/01_ultralytics_yolo11_pose/yolo11n_pose_bayese_640x640_nv12.bin"
+
+    confidence: 0.25
+    keypoint_confidence: 0.30
+
+    # auto:
+    #   通常は顔
+    #   手を肩より上げたら手首を追尾
+    #
+    # face:
+    #   常に顔
+    #
+    # hand:
+    #   常に手首
+    tracking_mode: "auto"
+
+    pan_id: 4
+    tilt_id: 6
+
+    pan_initial: 0.0
+    tilt_initial: 0.0
+
+    pan_direction: -1.0
+    tilt_direction: -1.0
+
+    pan_min: -90.0
+    pan_max: 90.0
+
+    tilt_min: -45.0
+    tilt_max: 45.0
+
+    pan_kp: 0.02
+    tilt_kp: 0.02
+
+    max_pan_step: 5.0
+    max_tilt_step: 5.0
+
+    deadzone_x: 30.0
+    deadzone_y: 30.0
+
+    filter_alpha: 0.25
