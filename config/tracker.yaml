@@ -12,6 +12,15 @@ pan_tilt_tracker:
     confidence: 0.25
     keypoint_confidence: 0.30
 
+    # Face frontal detection
+    face_front_nose_offset_threshold: 0.25
+    face_front_eye_height_threshold: 0.20
+
+    # Reach-out request trigger [seconds]
+    reach_out_hold_seconds: 0.8
+    reach_out_reset_seconds: 1.0
+    reach_out_cooldown_seconds: 5.0
+
     # auto:
     #   通常は顔
     #   手を肩より上げたら手首を追尾
@@ -31,6 +40,9 @@ pan_tilt_tracker:
 
     pan_direction: -1.0
     tilt_direction: -1.0
+
+    # Dynamixel tilt angle -> ROS neck_joint angle
+    tilt_ros_direction: -1.0
 
     pan_min: -90.0
     pan_max: 90.0
