@@ -6,7 +6,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 
-from dynamixel_handler_msgs.msg import DynamixelControlXPosition
+from dynamixel_handler_msgs.msg import DynamixelGoal
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 
@@ -94,6 +94,12 @@ class PanTiltTracker(Node):
 
         self.declare_parameter('pan_id', 4)
         self.declare_parameter('tilt_id', 6)
+        self.declare_parameter('pan_goal_current_ma', 500.0)
+        self.declare_parameter('tilt_goal_current_ma', 500.0)
+        self.declare_parameter(
+            'dynamixel_goal_topic',
+            '/robot/dynamixel/command/goal'
+        )
 
         self.declare_parameter('pan_initial', 0.0)
         self.declare_parameter('tilt_initial', 0.0)
@@ -177,6 +183,15 @@ class PanTiltTracker(Node):
 
         self.pan_id = self.get_parameter('pan_id').value
         self.tilt_id = self.get_parameter('tilt_id').value
+        self.pan_goal_current_ma = self.get_parameter(
+            'pan_goal_current_ma'
+        ).value
+        self.tilt_goal_current_ma = self.get_parameter(
+            'tilt_goal_current_ma'
+        ).value
+        self.dynamixel_goal_topic = self.get_parameter(
+            'dynamixel_goal_topic'
+        ).value
 
         self.pan_angle = self.get_parameter(
             'pan_initial'
@@ -286,8 +301,8 @@ class PanTiltTracker(Node):
         # ========================================================
 
         self.position_pub = self.create_publisher(
-            DynamixelControlXPosition,
-            '/robot/dynamixel/command/x/position_control',
+            DynamixelGoal,
+            self.dynamixel_goal_topic,
             10
         )
 
@@ -917,7 +932,7 @@ class PanTiltTracker(Node):
 
     def publish_position(self):
 
-        msg = DynamixelControlXPosition()
+        msg = DynamixelGoal()
 
         msg.id_list = [
             self.pan_id,
@@ -927,6 +942,11 @@ class PanTiltTracker(Node):
         msg.position_deg = [
             float(self.pan_angle),
             float(self.tilt_angle)
+        ]
+
+        msg.current_ma = [
+            float(self.pan_goal_current_ma),
+            float(self.tilt_goal_current_ma)
         ]
 
         self.position_pub.publish(msg)

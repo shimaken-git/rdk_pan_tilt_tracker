@@ -35,6 +35,11 @@ pan_tilt_tracker:
     pan_id: 4
     tilt_id: 6
 
+    # Restore the normal current limits after default_servo_pose.
+    pan_goal_current_ma: 500.0
+    tilt_goal_current_ma: 500.0
+    dynamixel_goal_topic: "/robot/dynamixel/command/goal"
+
     pan_initial: 0.0
     tilt_initial: 0.0
 
