@@ -43,10 +43,10 @@ pan_tilt_tracker:
     # default_servo_pose.
     pan_goal_current_ma: 500.0
     tilt_goal_current_ma: 500.0
-    pan_profile_velocity_deg_s: 60.0
-    tilt_profile_velocity_deg_s: 60.0
-    pan_profile_acceleration_deg_ss: 200.0
-    tilt_profile_acceleration_deg_ss: 200.0
+    pan_profile_velocity_deg_s: 0.0
+    tilt_profile_velocity_deg_s: 0.0
+    pan_profile_acceleration_deg_ss: 0.0
+    tilt_profile_acceleration_deg_ss: 0.0
     startup_config_publish_count: 3
     dynamixel_goal_topic: "/robot/dynamixel/command/goal"
 

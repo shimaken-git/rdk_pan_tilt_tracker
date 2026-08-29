@@ -101,10 +101,10 @@ class PanTiltTracker(Node):
         self.declare_parameter('tilt_id', 6)
         self.declare_parameter('pan_goal_current_ma', 500.0)
         self.declare_parameter('tilt_goal_current_ma', 500.0)
-        self.declare_parameter('pan_profile_velocity_deg_s', 60.0)
-        self.declare_parameter('tilt_profile_velocity_deg_s', 60.0)
-        self.declare_parameter('pan_profile_acceleration_deg_ss', 200.0)
-        self.declare_parameter('tilt_profile_acceleration_deg_ss', 200.0)
+        self.declare_parameter('pan_profile_velocity_deg_s', 0.0)
+        self.declare_parameter('tilt_profile_velocity_deg_s', 0.0)
+        self.declare_parameter('pan_profile_acceleration_deg_ss', 0.0)
+        self.declare_parameter('tilt_profile_acceleration_deg_ss', 0.0)
         self.declare_parameter('startup_config_publish_count', 3)
         self.declare_parameter(
             'dynamixel_goal_topic',
@@ -378,12 +378,9 @@ class PanTiltTracker(Node):
             cooldown_seconds=reach_out_cooldown_seconds
         )
 
-        # Send persistent Dynamixel settings only during startup.
+        # Include persistent Dynamixel settings in the first few valid
+        # tracking commands, then publish position only.
         self.startup_config_published = 0
-        self.startup_config_timer = self.create_timer(
-            0.1,
-            self.publish_startup_config
-        )
 
         # ========================================================
         # Timer
@@ -915,45 +912,6 @@ class PanTiltTracker(Node):
     # Dynamixel
     # ============================================================
 
-    def publish_startup_config(self):
-
-        if self.position_pub.get_subscription_count() == 0:
-            return
-
-        msg = DynamixelGoal()
-
-        msg.id_list = [
-            self.pan_id,
-            self.tilt_id
-        ]
-
-        msg.current_ma = [
-            float(self.pan_goal_current_ma),
-            float(self.tilt_goal_current_ma)
-        ]
-
-        msg.profile_vel_deg_s = [
-            float(self.pan_profile_velocity_deg_s),
-            float(self.tilt_profile_velocity_deg_s)
-        ]
-
-        msg.profile_acc_deg_ss = [
-            float(self.pan_profile_acceleration_deg_ss),
-            float(self.tilt_profile_acceleration_deg_ss)
-        ]
-
-        self.position_pub.publish(msg)
-        self.startup_config_published += 1
-
-        if (
-            self.startup_config_published
-            >= self.startup_config_publish_count
-        ):
-            self.startup_config_timer.cancel()
-            self.get_logger().info(
-                'Dynamixel tracking current and motion profile sent'
-            )
-
     def publish_position(self):
 
         msg = DynamixelGoal()
@@ -967,6 +925,35 @@ class PanTiltTracker(Node):
             float(self.pan_angle),
             float(self.tilt_angle)
         ]
+
+        if (
+            self.startup_config_published
+            < self.startup_config_publish_count
+        ):
+            msg.current_ma = [
+                float(self.pan_goal_current_ma),
+                float(self.tilt_goal_current_ma)
+            ]
+
+            msg.profile_vel_deg_s = [
+                float(self.pan_profile_velocity_deg_s),
+                float(self.tilt_profile_velocity_deg_s)
+            ]
+
+            msg.profile_acc_deg_ss = [
+                float(self.pan_profile_acceleration_deg_ss),
+                float(self.tilt_profile_acceleration_deg_ss)
+            ]
+
+            self.startup_config_published += 1
+
+            if (
+                self.startup_config_published
+                == self.startup_config_publish_count
+            ):
+                self.get_logger().info(
+                    'Dynamixel tracking current and motion profile sent'
+                )
 
         self.position_pub.publish(msg)
 
