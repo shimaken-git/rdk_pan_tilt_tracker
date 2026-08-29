@@ -8,6 +8,9 @@ pan_tilt_tracker:
     # Left camera inference runs at this rate when BPU processing keeps up.
     camera_fps: 30
 
+    # true: disable the OpenCV debug window for headless operation.
+    headless: false
+
     model_path: "/app/pydev_demo/04_pose_sample/01_ultralytics_yolo11_pose/yolo11n_pose_bayese_640x640_nv12.bin"
 
     confidence: 0.25

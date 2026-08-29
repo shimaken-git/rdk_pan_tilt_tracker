@@ -46,6 +46,11 @@ class PanTiltTracker(Node):
         )
 
         self.declare_parameter(
+            'headless',
+            False
+        )
+
+        self.declare_parameter(
             'model_path',
             '/app/pydev_demo/04_pose_sample/'
             '01_ultralytics_yolo11_pose/'
@@ -143,6 +148,10 @@ class PanTiltTracker(Node):
 
         self.camera_fps = self.get_parameter(
             'camera_fps'
+        ).value
+
+        self.headless = self.get_parameter(
+            'headless'
         ).value
 
         model_path = self.get_parameter(
@@ -727,40 +736,42 @@ class PanTiltTracker(Node):
         self.publish_camera_joint_state()
         self.publish_reach_out_request()
 
-        # ========================================================
-        # Draw
-        # ========================================================
+        if not self.headless:
 
-        self.draw_debug(
-            left_frame,
-            left_center_x,
-            left_center_y,
-            left_target
-        )
+            # ====================================================
+            # Draw
+            # ====================================================
 
-        self.draw_debug(
-            right_frame,
-            right_center_x,
-            right_center_y,
-            right_target
-        )
-
-        stereo_display = np.hstack(
-            (
+            self.draw_debug(
                 left_frame,
-                right_frame
+                left_center_x,
+                left_center_y,
+                left_target
             )
-        )
 
-        cv2.imshow(
-            'Pan Tilt Tracker',
-            stereo_display
-        )
+            self.draw_debug(
+                right_frame,
+                right_center_x,
+                right_center_y,
+                right_target
+            )
 
-        key = cv2.waitKey(1)
+            stereo_display = np.hstack(
+                (
+                    left_frame,
+                    right_frame
+                )
+            )
 
-        if key == 27:
-            rclpy.shutdown()
+            cv2.imshow(
+                'Pan Tilt Tracker',
+                stereo_display
+            )
+
+            key = cv2.waitKey(1)
+
+            if key == 27:
+                rclpy.shutdown()
 
     # ============================================================
     # Debug display
@@ -940,7 +951,8 @@ class PanTiltTracker(Node):
         if self.cap is not None:
             self.cap.release()
 
-        cv2.destroyAllWindows()
+        if not self.headless:
+            cv2.destroyAllWindows()
 
         super().destroy_node()
 
