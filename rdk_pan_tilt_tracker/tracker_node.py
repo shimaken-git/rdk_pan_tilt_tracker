@@ -349,11 +349,12 @@ class PanTiltTracker(Node):
         # ========================================================
         # Timer
         #
-        # BPU inference is synchronous, so start conservatively.
+        # Run at the requested camera rate. Actual FPS is bounded by
+        # camera capture and synchronous BPU inference time.
         # ========================================================
 
         self.timer = self.create_timer(
-            0.05,
+            1.0 / max(float(self.camera_fps), 1.0),
             self.update
         )
 
@@ -553,7 +554,7 @@ class PanTiltTracker(Node):
         half_width = width // 2
 
         left_frame = frame[:, :half_width].copy()
-        right_frame = frame[:, half_width:].copy()
+        right_frame = frame[:, half_width:]
 
         left_h, left_w = left_frame.shape[:2]
         right_h, right_w = right_frame.shape[:2]
@@ -584,69 +585,11 @@ class PanTiltTracker(Node):
         )
 
         # ========================================================
-        # Right BPU inference
+        # Use the left camera only to keep one BPU inference per update.
         # ========================================================
 
-        (
-            right_ids,
-            right_scores,
-            right_boxes,
-            right_kpts,
-            right_kpt_scores
-        ) = self.pose_model.infer(
-            right_frame
-        )
-
-        right_target = self.find_target(
-            right_kpts,
-            right_kpt_scores
-        )
-
-        # ========================================================
-        # Stereo target validation
-        # ========================================================
-
-        tracking_target = None
-
-        if (
-            left_target is not None
-            and right_target is not None
-        ):
-
-            (
-                left_x,
-                left_y,
-                left_type,
-                left_facing
-            ) = left_target
-
-            (
-                right_x,
-                right_y,
-                right_type,
-                right_facing
-            ) = right_target
-
-            # Must detect same kind of target
-            if left_type == right_type:
-
-                self.target_type = left_type
-
-                # Average errors from left/right camera
-                target_x = (
-                    left_x + right_x
-                ) / 2.0
-
-                target_y = (
-                    left_y + right_y
-                ) / 2.0
-
-                tracking_target = (
-                    target_x,
-                    target_y,
-                    left_type,
-                    left_facing and right_facing
-                )
+        right_target = None
+        tracking_target = left_target
 
         # ========================================================
         # Pan / Tilt tracking
@@ -661,6 +604,7 @@ class PanTiltTracker(Node):
                 target_facing
             ) = tracking_target
 
+            self.target_type = target_type
             self.face_detected = target_type == 'face'
             self.face_facing = (
                 self.face_detected and target_facing
